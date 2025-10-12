@@ -1,0 +1,75 @@
+:root {
+  --organge: #f97a00;
+  --sub-bg: #eae4d5;
+
+  --white: #fbfbfb;
+  --bg-color: #f6f6f6; /* Màu nền xanh rêu đậm */
+  --main-color: #fc3c3c; /* Màu chính nâu đất */
+  --text-color: #321e1e; /* Màu chữ trắng ngà */
+  --second-text-color: #4e3636; /* Màu chữ phụ xám nhạt */
+  --white-color: #ffffff; /* Màu trắng */
+  --cover-color: linear-gradient(
+    45deg,
+    #f5f3ef,
+    #c8b6a6
+  ); /* Gradient từ nâu đất sang xanh lá cây */
+  /* --pages-color: linear-gradient(
+    90deg,
+    #fff,
+    #ddd
+  ); Gradient từ trắng sang xám nhạt */
+
+  --pages-color: linear-gradient(90deg, #fdfdfb, #f0ede8);
+
+  --border: 0.125rem solid #fc3c3c; /* Viền nâu đất */
+  --box-shadow: 0 0 0.6rem rgba(0, 0, 0, 0.2); /* Hiệu ứng bóng đổ nhẹ */
+}
+
+a {
+  text-decoration: none;
+}
+/* ------------Chat Bot */
+div.sc-launcher .sc-closed-icon {
+  width: 30px !important;
+  height: 30px !important;
+  position: fixed !important;
+  right: 40px !important ;
+  bottom: 40px !important;
+  transition:
+    opacity 0.1s ease-in-out,
+    transform 0.1s ease-in-out !important;
+}
+
+.sc-header--img {
+  width: 60px !important;
+  height: 60px !important;
+}
+
+/* Điều chỉnh kích thước các thành phần markdown */
+.markdown-content h1 {
+  font-size: 1.6em;
+}
+
+.markdown-content h2 {
+  font-size: 1.4em;
+}
+
+.markdown-content h3 {
+  font-size: 1.2em;
+}
+
+.markdown-content p {
+  font-size: 1em;
+  margin: 0.8em 0;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  font-size: 0.95em;
+}
+
+.markdown-content pre,
+.markdown-content code {
+  font-size: 0.85em; /* Giảm kích thước cho code */
+}
+/*  */
