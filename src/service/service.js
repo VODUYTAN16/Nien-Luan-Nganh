@@ -1,162 +1,66 @@
-import api from '@/axios';
+// src/service.js
+import api from '../axios';
 
-//book
-export async function _fetch_Book_List(madm) {
-  try {
-    if (madm) {
-      const response = await api.get(`/api/nhanvien/category?madm=${madm}`);
-      const books = response.data[0].sach_info || [];
-      // Chỉ lấy sách chưa bị xóa
-      return books.filter((book) => book.daxoa !== true);
-    }
+const API_BASE = 'http://localhost:8000';
 
-    const response = await api.get('/api/docgia/books');
-    const books = response.data || [];
-    // Chỉ lấy sách chưa bị xóa
-    return books.filter((book) => book.daxoa !== true).reverse();
-  } catch (error) {
-    console.error('Lỗi khi lấy danh sách sách:', error);
-    return [];
-  }
+export function withBase(url) {
+  if (!url) return url;
+  if (url.startsWith('http')) return url;
+  return API_BASE + url;
 }
 
-export async function _fetch_Category() {
-  const res = await api.get('/api/nhanvien/category');
+// Auth
+export async function register(payload) {
+  const res = await api.post('/auth/register', payload);
   return res.data;
 }
 
-//nxb
-export async function _fetch_nxb() {
-  const res = await api.get('/api/nhanvien/nxb');
+export async function login(payload) {
+  const res = await api.post('/auth/login', payload);
+  const token = res.data?.access_token;
+  if (token) {
+    localStorage.setItem('access_token', token);
+  }
   return res.data;
 }
 
-export async function _fetch_Book_Detail(masach) {
-  const response = await api.get('/api/docgia/books/search?masach=' + masach);
-  return response.data[0];
+// Patterns
+export async function fetchPatterns(params = {}) {
+  const res = await api.get('/patterns', { params });
+  return res.data; // array
 }
 
-//Cập nhật sách
-export async function _update_book(id, payload) {
-  const response = await api.put(`/api/nhanvien/books/${id}`);
-  return response.data[0];
+export async function fetchPatternDetail(id) {
+  const res = await api.get(`/patterns/${id}`);
+  return res.data; // object
 }
 
-export async function _delete_book(book) {
-  const payload = { daxoa: true };
-  const response = await api.put(`/api/nhanvien/books/${book.masach}`, payload);
-  return response;
+// Models (Model Lab)
+export async function fetchModels() {
+  const res = await api.get('/models');
+  return res.data;
 }
 
-//auth
-export async function _fetch_staffs() {
-  const response = await api.get('/api/nhanvien/staffs');
-  console.log(response);
-  return response.data.reverse();
+export async function setDefaultModel(code) {
+  const res = await api.post(`/models/${code}/default`);
+  return res.data;
 }
 
-export async function _fetch_users() {
-  const response = await api.get('/api/nhanvien/users');
-  return response.data.reverse();
-}
+// Search: text + ảnh, có chọn model
+export async function searchPatterns({ modelCode, queryText, imageFile }) {
+  const form = new FormData();
+  form.append('model_code', modelCode);
 
-export async function _fetch_current_account() {
-  try {
-    const res = await api.post('/api/auth/verify-token');
-    console.log(res.data.user);
-    return res.data?.user;
-  } catch (error) {
-    console.error('Error get current ', error);
+  if (queryText) {
+    form.append('query_text', queryText);
   }
-}
-
-export async function _register(registerForm, role) {
-  try {
-    console.log(registerForm, role);
-    let response = [];
-    if (role == 'admin') {
-      console.log('Adminnnnnnnn');
-      response = await api.post('/api/auth/register-admin', registerForm);
-    } else response = await api.post('/api/auth/register', registerForm);
-    return response.data;
-  } catch (error) {
-    console.error('Error add user', error);
+  if (imageFile) {
+    form.append('image', imageFile);
   }
-}
 
-export async function _deleteActor(ma, role) {
-  try {
-    let response = [];
-    if (role == 'admin') {
-      response = await api.delete(`/api/nhanvien/staffs?manv=${ma}`);
-    } else {
-      response = await api.delete(`/api/nhanvien/users?madocgia=${ma}`);
-    }
-    return response;
-  } catch (error) {
-    console.error('Error delete user', error);
-  }
-}
+  const res = await api.post('/search', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 
-export async function _unlockAcount(ma, role) {
-  try {
-    let response = [];
-    if (role == 'admin') {
-      response = await api.put(`/api/nhanvien/staffs`, {
-        manv: ma,
-        daxoa: false,
-      });
-    } else {
-      response = await api.put(`/api/nhanvien/users`, {
-        madocgia: ma,
-        daxoa: false,
-      });
-    }
-    return response;
-  } catch (error) {
-    console.error('Error delete user', error);
-  }
+  return res.data.items; // list SearchResultItem
 }
-
-export async function _updateActor(payload, role) {
-  console.log(payload, role);
-  try {
-    let response = [];
-    if (role == 'admin') {
-      response = await api.put(`/api/nhanvien/staffs`, payload);
-    } else {
-      response = await api.put(`/api/nhanvien/users`, payload);
-    }
-    console.log(response);
-    return response;
-  } catch (error) {
-    console.error('Error update account!', error);
-  }
-  return 0;
-}
-
-//borow
-export async function _borrow_history(ma) {
-  let response = [];
-  if (ma) {
-    response = await api.get(`/api/nhanvien/borrow?madocgia=${ma}`);
-  } else {
-    response = await api.get('/api/nhanvien/borrow');
-  }
-  console.log(response.data);
-  return response.data.reverse();
-}
-
-export async function _borrow_book(madocgia, masach) {
-  const response = await api.post('/api/docgia/borrow', { madocgia, masach });
-  return response.data;
-}
-
-// 0: quá hạn, 1: Đang mượn, 2: đã trả, 3: đăng ký mượn, 4: mất sách.
-export async function _update_borrow_status(id, data) {
-  const response = await api.put(`/api/nhanvien/borrow/${id}`, data);
-  console.log(response.data);
-  return response.data;
-}
-
-export async function _check_borrowed_books(params) {}

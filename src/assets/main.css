@@ -1,0 +1,15 @@
+:root {
+  font-size: 17px; /* tăng toàn bộ ~1 step, tùy bạn chỉnh 16–18 */
+}
+
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro',
+    sans-serif;
+  font-size: 1rem; /* = 17px theo :root */
+  color: #222;
+  background: #faf7f5;
+}
