@@ -33,7 +33,7 @@ section {
 /* Container hiệu ứng */
 .leaves {
   position: absolute;
-  top: -10%;
+  top: -15%;
   width: 100%;
   height: 100%;
   display: flex;

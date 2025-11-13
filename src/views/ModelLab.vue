@@ -9,40 +9,47 @@
       </p>
     </header>
 
+    <!-- Danh sách model -->
     <section class="models">
       <div
         v-for="m in models"
-        :key="m.id"
-        :class="['model-card', { active: m.id === selectedId }]"
-        @click="selectModel(m.id)"
+        :key="m.code"
+        :class="['model-card', { active: m.code === selectedCode }]"
+        @click="selectModel(m.code)"
       >
         <div class="title-row">
           <h3>{{ m.name }}</h3>
-          <span class="badge" v-if="m.id === defaultId">Default</span>
+          <span class="badge" v-if="m.code === defaultCode">Default</span>
         </div>
-        <p class="desc">{{ m.desc }}</p>
+        <p class="desc">{{ m.description || 'Không có mô tả' }}</p>
         <ul class="meta">
-          <li>Embedding: {{ m.embedding }}</li>
-          <li>Top-k: {{ m.topk }}</li>
-          <li>Data domain: {{ m.domain }}</li>
+          <li>Embedding: {{ m.embedding_dim }}</li>
+          <li>Top-k: {{ m.top_k }}</li>
+          <li>Code: {{ m.code }}</li>
         </ul>
       </div>
     </section>
 
+    <!-- Playground -->
     <section class="playground" v-if="current">
       <h3>Thử nhanh với "{{ current.name }}"</h3>
-      <textarea
-        v-model="sampleText"
-        class="input"
-        rows="3"
-        placeholder="Ví dụ: 'coaster hoa nhiều lớp, màu pastel, phong cách Nhật'"
-      ></textarea>
+
+      <!-- Ô nhập text chỉ hiện khi là model 2 hoặc 3 -->
+      <div v-if="current.code === 'model_2' || current.code === 'model_3'">
+        <textarea
+          v-model="sampleText"
+          class="input"
+          rows="3"
+          placeholder="Ví dụ: 'coaster hoa nhiều lớp, màu pastel, phong cách Nhật'"
+        ></textarea>
+      </div>
+
       <div class="actions">
         <button class="btn-run" @click="runTest">Chạy thử</button>
         <button
           class="btn-outline"
-          v-if="selectedId !== defaultId"
-          @click="setDefault"
+          v-if="selectedCode !== defaultCode"
+          @click="makeDefault"
         >
           Đặt làm default
         </button>
@@ -65,46 +72,53 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { fetchModels, setDefaultModel } from '../service/service';
+import { fetchModels, setDefaultModel } from '@/service/service';
 
 const models = ref([]);
-const selectedId = ref(null);
-const defaultId = ref(null);
+const selectedCode = ref(null);
+const defaultCode = ref(null);
 const sampleText = ref('');
 const testResults = ref([]);
 
 const current = computed(
-  () => models.value.find((m) => m.code === selectedId.value) || null
+  () => models.value.find((m) => m.code === selectedCode.value) || null
 );
 
 onMounted(async () => {
-  const data = await fetchModels();
-  models.value = data;
-  const def = data.find((m) => m.is_default) || data[0];
-  if (def) {
-    selectedId.value = def.code;
-    defaultId.value = def.code;
+  try {
+    const data = await fetchModels();
+    models.value = data;
+    const def = data.find((m) => m.is_default) || data[0];
+    if (def) {
+      selectedCode.value = def.code;
+      defaultCode.value = def.code;
+    }
+  } catch (e) {
+    console.error('Lỗi khi tải models:', e);
   }
 });
 
 function selectModel(code) {
-  selectedId.value = code;
+  selectedCode.value = code;
   testResults.value = [];
 }
 
 async function makeDefault() {
-  if (!selectedId.value) return;
-  await setDefaultModel(selectedId.value);
-  defaultId.value = selectedId.value;
+  if (!selectedCode.value) return;
+  await setDefaultModel(selectedCode.value);
+  defaultCode.value = selectedCode.value;
   models.value = models.value.map((m) => ({
     ...m,
-    is_default: m.code === selectedId.value,
+    is_default: m.code === selectedCode.value,
   }));
 }
 
 function runTest() {
-  // tạm mock, phần này khi có search_engine thật thì call /search với sampleText + modelCode
-  if (!sampleText.value) {
+  // tạm mock, khi có search_engine thì sẽ call API thật
+  if (
+    !sampleText.value &&
+    (current.value.code === 'model_2' || current.value.code === 'model_3')
+  ) {
     testResults.value = [];
     return;
   }
@@ -119,129 +133,175 @@ function runTest() {
 .page {
   max-width: 1100px;
   margin: 0 auto;
+  color: var(--text-color);
 }
+
+/* Header */
 .page-header h2 {
   font-size: 20px;
+  font-weight: 500;
+  color: var(--text-color);
 }
+
 .page-header p {
   font-size: 12px;
-  color: #666;
+  color: var(--second-text-color);
   margin-top: 4px;
 }
+
+/* Danh sách model */
 .models {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 10px;
   margin-top: 14px;
 }
+
 .model-card {
   padding: 10px;
   border-radius: 18px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  background: var(--white);
+  border: var(--border-light);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.04);
   cursor: pointer;
   font-size: 11px;
   transition: all 0.16s ease;
+  color: var(--text-color);
 }
+
 .model-card.active {
-  border-color: #e8a1b6;
-  box-shadow: 0 10px 26px rgba(232, 161, 182, 0.26);
+  border-color: var(--main-color);
+  box-shadow: var(--box-shadow);
   transform: translateY(-2px);
 }
+
 .title-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .title-row h3 {
   font-size: 13px;
   font-weight: 500;
 }
+
 .badge {
   font-size: 8px;
   padding: 2px 6px;
   border-radius: 999px;
-  background: #fff4f7;
-  color: #c66b8e;
+  background: var(--sub-bg);
+  color: var(--main-color);
 }
+
+/* Mô tả & meta */
 .desc {
   margin-top: 4px;
-  color: #666;
+  color: var(--second-text-color);
 }
+
 .meta {
   margin-top: 6px;
   padding-left: 14px;
-  color: #888;
+  color: var(--second-text-color);
 }
+
+/* Playground */
 .playground {
   margin-top: 22px;
 }
+
 .playground h3 {
   font-size: 13px;
+  color: var(--text-color);
 }
+
 .input {
   width: 100%;
   margin-top: 6px;
   padding: 8px 10px;
   border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: var(--border-light);
   font-size: 11px;
-  background: #fff;
+  background: var(--white);
   resize: vertical;
+  color: var(--text-color);
 }
+
+/* Actions */
 .actions {
   margin-top: 8px;
   display: flex;
   gap: 8px;
 }
+
 .btn-run {
   padding: 7px 16px;
   border-radius: 999px;
   border: none;
-  background: #e8a1b6;
-  color: #fff;
+  background: var(--main-color);
+  color: var(--white);
   font-size: 11px;
-  cursor: true;
-  box-shadow: 0 8px 22px rgba(232, 161, 182, 0.34);
+  cursor: pointer;
+  box-shadow: var(--box-shadow);
+  transition: all 0.16s ease;
 }
+
+.btn-run:hover {
+  background: var(--green-dark, var(--main-color));
+  box-shadow: var(--shadow-strong, var(--box-shadow));
+  transform: translateY(-1px);
+}
+
 .btn-outline {
   padding: 7px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #fff;
+  border: var(--border-light);
+  background: var(--white);
   font-size: 10px;
-  color: #555;
+  color: var(--second-text-color);
   cursor: pointer;
+  transition: all 0.16s ease;
 }
+
+.btn-outline:hover {
+  background: var(--sub-bg);
+}
+
+/* Kết quả giả lập */
 .results {
   margin-top: 14px;
   font-size: 10px;
+  color: var(--second-text-color);
 }
+
 .results-header {
-  color: #888;
   margin-bottom: 4px;
 }
+
 .list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
+
 .list li {
   display: flex;
   justify-content: space-between;
   padding: 6px 9px;
   border-radius: 12px;
-  background: #fff;
+  background: var(--white);
   border: 1px solid rgba(0, 0, 0, 0.02);
   margin-bottom: 4px;
 }
+
 .name {
   font-size: 10px;
-  color: #444;
+  color: var(--text-color);
 }
+
 .score {
   font-size: 9px;
-  color: #999;
+  color: var(--second-text-color);
 }
 </style>

@@ -178,12 +178,13 @@ watch(
 .page {
   max-width: 1100px;
   margin: 0 auto;
-  font-size: 16px; /* tăng base chữ toàn trang */
+  font-size: 16px;
+  color: var(--text-color);
 }
 
 .loading {
-  font-size: 14px; /* 12 -> 14 */
-  color: #777;
+  font-size: 14px;
+  color: var(--second-text-color);
 }
 
 /* Breadcrumb */
@@ -191,13 +192,13 @@ watch(
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 12px; /* 10 -> 12 */
-  color: #999;
+  font-size: 12px;
+  color: var(--second-text-color);
   margin-bottom: 12px;
 }
 .breadcrumb a {
   text-decoration: none;
-  color: #c66b8e;
+  color: var(--main-color);
 }
 
 /* Layout chính */
@@ -213,7 +214,7 @@ watch(
   position: relative;
   border-radius: 22px;
   overflow: hidden;
-  background: #f5ece7;
+  background: var(--sub-bg);
 }
 .image-wrap img {
   width: 100%;
@@ -226,7 +227,7 @@ watch(
   bottom: 8px;
   left: 10px;
   right: 10px;
-  font-size: 12px; /* 10 -> 12 */
+  font-size: 12px;
   color: #fff;
   background: rgba(0, 0, 0, 0.45);
   padding: 4px 8px;
@@ -236,37 +237,43 @@ watch(
 
 /* Thông tin bên phải */
 .right h1 {
-  font-size: 26px; /* 22 -> 26 */
+  font-size: 26px;
   font-weight: 500;
+  color: var(--text-color);
 }
+
 .meta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 8px;
 }
+
 .pill {
   padding: 4px 12px;
   border-radius: 999px;
-  font-size: 11px; /* 9 -> 11 */
-  background: #e8a1b6;
-  color: #fff;
+  font-size: 11px;
+  background: var(--main-color);
+  color: var(--white);
 }
+
 .pill.ghost {
-  background: #fff4f7;
-  color: #c66b8e;
+  background: var(--sub-bg);
+  color: var(--main-color);
 }
+
 .tag {
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 11px; /* 9 -> 11 */
-  background: #f7f4f2;
-  color: #666;
+  font-size: 11px;
+  background: var(--sub-bg);
+  color: var(--second-text-color);
 }
+
 .desc {
   margin-top: 12px;
-  font-size: 15px; /* 12 -> 15 */
-  color: #555;
+  font-size: 15px;
+  color: var(--second-text-color);
   line-height: 1.5;
 }
 
@@ -275,43 +282,49 @@ watch(
   margin-top: 14px;
   text-align: center;
 }
+
 .bot-image {
   max-width: 75%;
   border-radius: 16px;
-  background: #fffaf8;
+  background: var(--white);
   object-fit: contain;
   cursor: zoom-in;
   transition: all 0.2s ease;
 }
+
 .bot-image:hover {
   transform: scale(1.03);
 }
+
 .caption-bot {
   margin-top: 6px;
-  font-size: 12px; /* 10 -> 12 */
-  color: #777;
+  font-size: 12px;
+  color: var(--second-text-color);
 }
 
 /* Block nội dung phụ */
 .block {
   margin-top: 18px;
 }
+
 .block h3 {
-  font-size: 13px; /* 11 -> 13 */
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: #999;
+  color: var(--second-text-color);
   margin-bottom: 6px;
 }
+
 .block ul {
   padding-left: 18px;
-  font-size: 13px; /* 11 -> 13 */
-  color: #555;
+  font-size: 13px;
+  color: var(--second-text-color);
   line-height: 1.5;
 }
+
 .external {
-  font-size: 13px; /* 11 -> 13 */
-  color: #c66b8e;
+  font-size: 13px;
+  color: var(--main-color);
   text-decoration: none;
 }
 
@@ -319,15 +332,19 @@ watch(
 .related {
   margin-top: 32px;
 }
+
 .related-header h3 {
-  font-size: 17px; /* 14 -> 17 */
+  font-size: 17px;
+  color: var(--text-color);
 }
+
 .grid {
   margin-top: 12px;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
 }
+
 .grid :deep(.pattern-card),
 .grid :deep(.card) {
   width: 100%;
@@ -344,15 +361,17 @@ watch(
   z-index: 999;
   padding: 24px;
 }
+
 .modal-content {
   position: relative;
   max-width: 95vw;
   max-height: 90vh;
-  background: #fff;
+  background: var(--white);
   border-radius: 12px;
   overflow: hidden;
   animation: zoomIn 0.25s ease;
 }
+
 .modal-img {
   display: block;
   width: auto;
@@ -362,18 +381,20 @@ watch(
   margin: 0 auto;
   object-fit: contain;
 }
+
 .close-btn {
   position: absolute;
   top: 8px;
   right: 12px;
   background: transparent;
   border: none;
-  font-size: 28px; /* 26 -> 28 */
-  color: #777;
+  font-size: 28px;
+  color: var(--second-text-color);
   cursor: pointer;
 }
+
 .close-btn:hover {
-  color: #c66b8e;
+  color: var(--main-color);
 }
 
 /* Hiệu ứng modal */
@@ -387,10 +408,12 @@ watch(
     opacity: 1;
   }
 }
+
 .zoom-fade-enter-active,
 .zoom-fade-leave-active {
   transition: opacity 0.25s;
 }
+
 .zoom-fade-enter-from,
 .zoom-fade-leave-to {
   opacity: 0;

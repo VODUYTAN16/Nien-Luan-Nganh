@@ -1,15 +1,22 @@
 // src/service.js
 import api from '../axios';
 
-const API_BASE = 'http://localhost:8000';
+// ===== Base URL helper (optional when using `api`) =====
+export const API_BASE =
+  (typeof import.meta !== 'undefined' &&
+    import.meta.env &&
+    import.meta.env.VITE_API_BASE) ||
+  'http://localhost:8000';
 
 export function withBase(url) {
   if (!url) return url;
-  if (url.startsWith('http')) return url;
+  if (/^https?:\/\//i.test(url)) return url;
   return API_BASE + url;
 }
 
-// Auth
+/* =========================
+ * Auth
+ * ========================= */
 export async function register(payload) {
   const res = await api.post('/auth/register', payload);
   return res.data;
@@ -24,7 +31,9 @@ export async function login(payload) {
   return res.data;
 }
 
-// Patterns
+/* =========================
+ * Patterns
+ * ========================= */
 export async function fetchPatterns(params = {}) {
   const res = await api.get('/patterns', { params });
   return res.data; // array
@@ -35,7 +44,9 @@ export async function fetchPatternDetail(id) {
   return res.data; // object
 }
 
-// Models (Model Lab)
+/* =========================
+ * Models (Model Lab)
+ * ========================= */
 export async function fetchModels() {
   const res = await api.get('/models');
   return res.data;
@@ -46,21 +57,59 @@ export async function setDefaultModel(code) {
   return res.data;
 }
 
-// Search: text + ảnh, có chọn model
-export async function searchPatterns({ modelCode, queryText, imageFile }) {
-  const form = new FormData();
-  form.append('model_code', modelCode);
-
-  if (queryText) {
-    form.append('query_text', queryText);
-  }
-  if (imageFile) {
-    form.append('image', imageFile);
-  }
-
-  const res = await api.post('/search', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+// (Optional) Lấy dữ liệu embed để vẽ 3D scatter
+export async function fetchEmbedViz(modelCode) {
+  const res = await api.get('/models/embed_viz', {
+    params: { model_code: modelCode },
   });
+  return res.data;
+}
 
-  return res.data.items; // list SearchResultItem
+/* =========================
+ * Search (ảnh + text / chỉ ảnh / chỉ text)
+ * Backend hỗ trợ 3 endpoint:
+ *  - POST /search/image  (FormData: model_code, image)
+ *  - POST /search/text   (JSON:     model_code, text)
+ *  - POST /search/fuse   (FormData: model_code, image, text)
+ * Nếu server bạn gom vào /search duy nhất, chỉ cần đổi `endpoint` các nhánh về '/search'
+ * ========================= */
+
+/**
+ * @param {{ modelCode: string, queryText: string|null, imageFile: File|null }} params
+ * @returns {Promise<any[]>} danh sách pattern (BE trả dữ liệu gì thì trả nguyên res.data)
+ */
+export async function searchPatterns({ modelCode, queryText, imageFile }) {
+  const hasText = !!(queryText && String(queryText).trim());
+  const hasImage = !!imageFile;
+
+  let endpoint = '/search';
+  let res;
+
+  if (hasImage && hasText) {
+    // Ảnh + Text
+    endpoint = '/search/fuse';
+    const fd = new FormData();
+    fd.append('model_code', modelCode);
+    fd.append('text', String(queryText).trim());
+    fd.append('image', imageFile);
+    res = await api.post(endpoint, fd, {
+      // KHÔNG set 'Content-Type' — axios sẽ tự set multipart boundary
+    });
+  } else if (hasImage) {
+    // Chỉ ảnh
+    endpoint = '/search/image';
+    const fd = new FormData();
+    fd.append('model_code', modelCode);
+    fd.append('image', imageFile);
+    res = await api.post(endpoint, fd);
+  } else {
+    // Chỉ text
+    endpoint = '/search/text';
+    res = await api.post(endpoint, {
+      model_code: modelCode,
+      text: String(queryText).trim(),
+    });
+  }
+
+  return res.data;
 }

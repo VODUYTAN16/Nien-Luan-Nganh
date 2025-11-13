@@ -51,7 +51,7 @@ const truncatedDescription = computed(() => {
 
 <style scoped>
 .pattern-card {
-  background: #ffffff;
+  background: var(--white);
   border-radius: 18px;
   padding: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
@@ -60,6 +60,7 @@ const truncatedDescription = computed(() => {
   flex-direction: column;
   gap: 6px;
   transition: all 0.16s ease;
+  color: var(--text-color);
 }
 
 .pattern-card:hover {
@@ -72,7 +73,7 @@ const truncatedDescription = computed(() => {
   aspect-ratio: 1 / 1;
   border-radius: 14px;
   object-fit: cover;
-  background: #f5e9ef;
+  background: var(--sub-bg);
 }
 
 .info {
@@ -84,7 +85,7 @@ const truncatedDescription = computed(() => {
 .name {
   font-size: 12px;
   font-weight: 400;
-  color: #333;
+  color: var(--text-color);
   line-height: 1.3;
 }
 
@@ -98,12 +99,12 @@ const truncatedDescription = computed(() => {
   font-size: 10px;
   padding: 3px 8px;
   border-radius: 999px;
-  background: #ffe5ef;
-  color: #b45b7c;
+  background: var(--sub-bg);
+  color: var(--main-color);
 }
 
 .badge.soft {
-  background: #f3f3f3;
-  color: #777;
+  background: var(--bg-color);
+  color: var(--second-text-color);
 }
 </style>

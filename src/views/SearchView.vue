@@ -1,5 +1,7 @@
 <template>
   <div class="page">
+    <div class="hero-blur-overlay"></div>
+
     <!-- Lớp hiệu ứng lá rơi -->
     <LeafFall class="leaf-layer" />
 
@@ -16,21 +18,28 @@
       <section class="search-panel">
         <!-- Bên trái: text + upload ảnh -->
         <div class="left">
-          <label class="label">Mô tả mẫu (text)</label>
-          <textarea
-            v-model="textQuery"
-            class="input"
-            rows="3"
-            placeholder="Ví dụ: coaster tròn màu be, viền răng cưa, phong cách tối giản..."
-          ></textarea>
+          <Transition name="fade">
+            <div
+              v-if="selectedModel === 'model_2' || selectedModel === 'model_3'"
+            >
+              <label class="label">Mô tả mẫu (text)</label>
+              <textarea
+                v-model="textQuery"
+                class="input"
+                rows="3"
+                placeholder="Ví dụ: coaster tròn màu be, viền răng cưa, phong cách tối giản..."
+              ></textarea>
+            </div>
+          </Transition>
 
           <div class="upload-area" @click="triggerFile">
             <div class="upload-icon">📷</div>
             <div class="upload-text">
               <div>Chọn hoặc kéo thả ảnh mẫu của bạn</div>
-              <small>
-                Hỗ trợ JPG, PNG. Ảnh rõ, đủ sáng giúp model nhận diện tốt hơn.
-              </small>
+              <small
+                >Hỗ trợ JPG, PNG. Ảnh rõ, đủ sáng giúp model nhận diện tốt
+                hơn.</small
+              >
             </div>
             <input
               ref="fileInput"
@@ -69,32 +78,25 @@
           <button class="btn-run" @click="runSearch" :disabled="loading">
             {{ loading ? 'Đang tìm...' : 'Gợi ý mẫu' }}
           </button>
+          <p class="inline-warn" v-if="warnMsg">⚠️ {{ warnMsg }}</p>
           <p class="hint" v-if="selectedModel">
-            Gợi ý từ model: <strong>{{ selectedModel }}</strong>
-            • Top-k = 20 (có thể chỉnh tại Model Lab).
+            Gợi ý từ model: <strong>{{ selectedModel }}</strong> • Top-k = 20
+            (có thể chỉnh tại Model Lab).
           </p>
         </div>
       </section>
 
-      <!-- Kết quả -->
-      <div v-if="results.length" class="grid">
-        <div
-          v-for="item in results"
-          :key="item.id"
-          class="pattern-card"
-          @click="goDetail(item.id)"
-        >
-          <img
-            :src="withBase(item.top_image_url)"
-            :alt="item.name || item.base_name"
+      <div v-if="results" class="results-wrap">
+        <div class="results-grid">
+          <PatternCard
+            v-for="item in results"
+            :key="item.id"
+            :pattern="item"
+            @click="goDetail(item.id)"
           />
-          <div class="name">
-            {{ item.name || item.base_name }}
-          </div>
         </div>
       </div>
 
-      <!-- Trạng thái rỗng -->
       <section v-else class="empty">
         <p>
           Chưa có kết quả. Nhập mô tả hoặc chọn ảnh, sau đó bấm “Gợi ý mẫu”.
@@ -105,62 +107,51 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { fetchModels, searchPatterns, withBase } from '@/service/service';
+import { fetchModels, searchPatterns } from '@/service/service';
 import LeafFall from '@/components/LeafFall.vue';
+import PatternCard from '@/components/PatternCard.vue';
 
 const router = useRouter();
 
 const models = ref([]);
 const selectedModel = ref(null);
-
 const textQuery = ref('');
 const imageFile = ref(null);
 const fileInput = ref(null);
 const previewUrl = ref(null);
-
 const results = ref([]);
 const loading = ref(false);
+const warnMsg = ref('');
 
-// chọn file
-const triggerFile = () => {
-  if (fileInput.value) {
-    fileInput.value.click();
-  }
-};
+const triggerFile = () => fileInput.value?.click();
 
 function onFileChange(e) {
-  const file = e.target.files?.[0];
-  imageFile.value = file || null;
-
-  if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value);
-  }
-
-  if (file) {
-    previewUrl.value = URL.createObjectURL(file);
-  } else {
-    previewUrl.value = null;
-  }
+  const file = e.target.files?.[0] || null;
+  imageFile.value = file;
+  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
+  previewUrl.value = file ? URL.createObjectURL(file) : null;
 }
 
-const clearImage = () => {
+function clearImage() {
   imageFile.value = null;
   if (fileInput.value) fileInput.value.value = '';
   if (previewUrl.value) {
     URL.revokeObjectURL(previewUrl.value);
     previewUrl.value = null;
   }
-};
+}
 
-// điều hướng sang detail
-const goDetail = (id) => {
-  if (!id) return;
-  router.push(`/patterns/${id}`);
-};
+function showWarn(msg) {
+  warnMsg.value = msg;
+  setTimeout(() => (warnMsg.value = ''), 3000);
+}
 
-// gọi API model khi mount
+function goDetail(id) {
+  if (id) router.push(`/patterns/${id}`);
+}
+
 onMounted(async () => {
   try {
     const data = await fetchModels();
@@ -172,64 +163,114 @@ onMounted(async () => {
   }
 });
 
-// chạy search
 async function runSearch() {
-  if (!selectedModel.value) return;
+  const model = selectedModel.value;
+  const hasText = !!textQuery.value.trim();
+  const hasImage = !!imageFile.value;
+
+  if (!model || (!hasText && !hasImage)) {
+    showWarn('Vui lòng nhập mô tả hoặc chọn ảnh trước khi ấn "Gợi ý mẫu".');
+    return;
+  }
+  if ((model === 'model_1' || model === 'model_4') && !hasImage) {
+    showWarn('Model hiện tại chỉ hỗ trợ tìm theo ảnh. Vui lòng chọn ảnh.');
+    return;
+  }
 
   loading.value = true;
   results.value = [];
 
   try {
-    const res = await searchPatterns({
-      modelCode: selectedModel.value,
-      queryText: textQuery.value || null,
-      imageFile: imageFile.value || null,
+    const items = await searchPatterns({
+      modelCode: model,
+      queryText: hasText ? textQuery.value.trim() : null,
+      imageFile: hasImage ? imageFile.value : null,
     });
-    results.value = res || [];
+    results.value = items || [];
   } catch (e) {
     console.error('Lỗi khi search patterns:', e);
-    results.value = [];
+    showWarn('Không truy vấn được. Vui lòng thử lại sau.');
   } finally {
     loading.value = false;
   }
 }
+
+watch(selectedModel, (newVal) => {
+  if (newVal !== 'model_2' && newVal !== 'model_3') {
+    textQuery.value = '';
+  }
+});
 </script>
 
 <style scoped>
-.page {
-  position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: calc(100vh - 120px);
-  font-size: 16px; /* base to hơn cho toàn page */
+/* Hiệu ứng fade */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
-/* lớp lá rơi nằm dưới, không chặn thao tác */
+.hero-blur-overlay {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(6px); /* mức độ mờ */
+  background-color: rgba(255, 255, 255, 0.08); /* kính mờ nhẹ */
+  z-index: 1;
+}
+/* Nền blur */
+.page {
+  position: relative;
+  max-width: 1300px;
+  margin: 0 auto;
+  min-height: calc(100vh - 120px);
+  color: var(--text-color);
+  overflow: hidden;
+}
+
+.page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('../assets/hinhL.png') center/cover no-repeat;
+  filter: blur(8px) brightness(1.1);
+  z-index: 0;
+  transform: scale(1.05);
+}
+
+/* Lớp lá rơi */
 .leaf-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
-}
-
-/* nội dung nằm trên hiệu ứng */
-.content {
-  position: relative;
   z-index: 2;
 }
 
-/* header */
-.page-header h2 {
-  font-size: 24px; /* 22 -> 24 */
-  font-weight: 500;
+/* Nội dung nổi trên nền */
+.content {
+  position: relative;
+  z-index: 3;
+  border-radius: 20px;
+  padding: 20px 28px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
+
+/* Header */
+.page-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
 .page-header p {
-  font-size: 14px; /* 13 -> 14 */
-  color: #666;
+  font-size: 14px;
+  color: var(--second-text-color);
   margin-top: 4px;
 }
 
-/* khối tìm kiếm */
+/* Khối tìm kiếm */
 .search-panel {
   display: grid;
   grid-template-columns: 1.7fr 1.3fr;
@@ -237,43 +278,49 @@ async function runSearch() {
   margin-top: 18px;
   align-items: flex-start;
 }
+
+/* Input & Upload */
 .label {
-  font-size: 13px; /* 11 -> 13 */
-  color: #777;
+  font-size: 13px;
+  color: var(--second-text-color);
 }
 .input {
   width: 100%;
   margin-top: 4px;
   padding: 11px 12px;
   border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  font-size: 14px; /* 12 -> 14 */
+  border: var(--border-light);
+  font-size: 14px;
   resize: vertical;
-  background: #fff;
+  background: var(--white);
+  color: var(--text-color);
 }
-
-/* upload ảnh */
 .upload-area {
   margin-top: 10px;
   padding: 13px;
   border-radius: 16px;
-  border: 1px dashed rgba(0, 0, 0, 0.14);
-  background: rgba(255, 255, 255, 0.9);
+  border: 1px dashed var(--green-border);
+  background: rgba(255, 255, 255, 0.85);
   display: flex;
   gap: 10px;
   align-items: center;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+.upload-area:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-1px);
 }
 .upload-icon {
-  font-size: 22px; /* 20 -> 22 */
+  font-size: 22px;
 }
 .upload-text div {
-  font-size: 14px; /* 12 -> 14 */
-  color: #444;
+  font-size: 14px;
+  color: var(--text-color);
 }
 .upload-text small {
-  font-size: 11px; /* 10 -> 11 */
-  color: #888;
+  font-size: 11px;
+  color: var(--second-text-color);
 }
 .preview {
   margin-top: 10px;
@@ -290,15 +337,16 @@ async function runSearch() {
 .link-btn {
   border: none;
   background: none;
-  font-size: 13px; /* 11 -> 13 */
-  color: #c66b8e;
+  font-size: 13px;
+  color: var(--main-color);
   cursor: pointer;
 }
 
-/* chọn model */
+/* Model */
 .right h3 {
-  font-size: 16px; /* 14 -> 16 */
+  font-size: 16px;
   margin-bottom: 8px;
+  color: var(--text-color);
 }
 .model-list {
   display: flex;
@@ -308,24 +356,25 @@ async function runSearch() {
 .model-btn {
   padding: 9px 10px;
   border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: #fff;
+  border: var(--border-light);
+  background: var(--white);
   text-align: left;
   cursor: pointer;
   transition: all 0.16s ease;
-  font-size: 13px; /* 11 -> 13 */
+  font-size: 13px;
+  color: var(--text-color);
 }
 .model-btn.active {
-  border-color: #e8a1b6;
-  box-shadow: 0 6px 18px rgba(232, 161, 182, 0.26);
+  border-color: var(--main-color);
+  box-shadow: var(--box-shadow);
   transform: translateY(-1px);
 }
 .model-name {
   font-weight: 600;
-  font-size: 14px; /* 12 -> 14 */
+  font-size: 14px;
 }
 .model-desc {
-  color: #777;
+  color: var(--second-text-color);
   margin-top: 2px;
 }
 .model-tag {
@@ -333,72 +382,63 @@ async function runSearch() {
   margin-top: 4px;
   padding: 3px 9px;
   border-radius: 999px;
-  background: #fff4f7;
-  font-size: 11px; /* 9 -> 11 */
-  color: #c66b8e;
+  background: var(--sub-bg);
+  font-size: 11px;
+  color: var(--main-color);
 }
 
-/* nút chạy */
+/* Nút chạy */
 .btn-run {
   margin-top: 10px;
   width: 100%;
   padding: 10px 0;
   border-radius: 999px;
   border: none;
-  background: #e8a1b6;
-  color: #fff;
-  font-size: 14px; /* 12 -> 14 */
+  background: var(--main-color);
+  color: var(--white);
+  font-size: 14px;
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(232, 161, 182, 0.34);
+  box-shadow: var(--box-shadow);
+  transition: all 0.18s ease;
 }
 .btn-run:disabled {
   opacity: 0.7;
   cursor: default;
 }
+.btn-run:hover:not(:disabled) {
+  background: var(--green-dark);
+  box-shadow: var(--shadow-strong);
+  transform: translateY(-1px);
+}
+
+/* Các phần khác */
+.inline-warn {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #b45309;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  padding: 6px 10px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
 .hint {
   margin-top: 6px;
-  font-size: 11px; /* 9 -> 11 */
-  color: #888;
+  font-size: 11px;
+  color: var(--second-text-color);
 }
-
-/* kết quả */
-.grid {
+.results-wrap {
   margin-top: 24px;
+}
+.results-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
 }
-.pattern-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 7px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
-  cursor: pointer;
-  transition: all 0.14s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.pattern-card img {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 12px;
-  object-fit: cover;
-  background: #f5e9ef;
-}
-.pattern-card .name {
-  font-size: 13px; /* 11 -> 13 */
-  color: #444;
-}
-.pattern-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
-}
-
-/* trạng thái rỗng */
 .empty {
   margin-top: 26px;
-  font-size: 14px; /* 12 -> 14 */
+  font-size: 14px;
   color: #999;
 }
 </style>

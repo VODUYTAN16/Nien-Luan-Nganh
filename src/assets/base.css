@@ -1,39 +1,48 @@
 :root {
-  --organge: #f97a00;
-  --sub-bg: #eae4d5;
+  /* ======= TONE XANH LÁ DỊU NHẸ ======= */
 
-  --white: #fbfbfb;
-  --bg-color: #f6f6f6; /* Màu nền xanh rêu đậm */
-  --main-color: #fc3c3c; /* Màu chính nâu đất */
-  --text-color: #321e1e; /* Màu chữ trắng ngà */
-  --second-text-color: #4e3636; /* Màu chữ phụ xám nhạt */
-  --white-color: #ffffff; /* Màu trắng */
-  --cover-color: linear-gradient(
-    45deg,
-    #f5f3ef,
-    #c8b6a6
-  ); /* Gradient từ nâu đất sang xanh lá cây */
-  /* --pages-color: linear-gradient(
-    90deg,
-    #fff,
-    #ddd
-  ); Gradient từ trắng sang xám nhạt */
+  --green-main: #5fbf8f; /* màu chính: xanh lá mềm */
+  --green-dark: #3c9b6d; /* xanh đậm hơn cho hover */
+  --green-light: #d9f6e8; /* nền nhạt */
+  --green-bg: #f5faf7; /* màu nền tổng thể */
+  --green-border: rgba(95, 191, 143, 0.25);
+  --green-gradient: linear-gradient(135deg, #d9f6e8, #e8fff2);
 
-  --pages-color: linear-gradient(90deg, #fdfdfb, #f0ede8);
+  /* ======= TONE PHỤ & CƠ BẢN ======= */
 
-  --border: 0.125rem solid #fc3c3c; /* Viền nâu đất */
-  --box-shadow: 0 0 0.6rem rgba(0, 0, 0, 0.2); /* Hiệu ứng bóng đổ nhẹ */
+  --white: #ffffff;
+  --text-color: #2f3a33; /* màu chữ chính */
+  --text-sub: #4d6b5b; /* chữ phụ */
+  --shadow-soft: 0 6px 14px rgba(95, 191, 143, 0.18);
+  --shadow-strong: 0 10px 24px rgba(60, 155, 109, 0.35);
+  --border-light: 1px solid rgba(0, 0, 0, 0.06);
+
+  /* ======= GIỮ LẠI MỘT SỐ BIẾN CŨ (để không lỗi code cũ) ======= */
+
+  --organge: #5fbf8f;
+  --sub-bg: #f0fff8;
+  --bg-color: var(--green-bg);
+  --main-color: var(--green-main);
+  --second-text-color: var(--text-sub);
+  --cover-color: var(--green-gradient);
+  --pages-color: linear-gradient(90deg, #fdfdfb, #f5faf7);
+  --border: 0.125rem solid var(--green-main);
+  --box-shadow: var(--shadow-soft);
 }
+
+/* ======= Global reset ======= */
 
 a {
   text-decoration: none;
+  color: var(--main-color);
 }
-/* ------------Chat Bot */
+
+/* ======= Chat Bot Button ======= */
 div.sc-launcher .sc-closed-icon {
   width: 30px !important;
   height: 30px !important;
   position: fixed !important;
-  right: 40px !important ;
+  right: 40px !important;
   bottom: 40px !important;
   transition:
     opacity 0.1s ease-in-out,
@@ -45,7 +54,8 @@ div.sc-launcher .sc-closed-icon {
   height: 60px !important;
 }
 
-/* Điều chỉnh kích thước các thành phần markdown */
+/* ======= Markdown content ======= */
+
 .markdown-content h1 {
   font-size: 1.6em;
 }
@@ -70,6 +80,5 @@ div.sc-launcher .sc-closed-icon {
 
 .markdown-content pre,
 .markdown-content code {
-  font-size: 0.85em; /* Giảm kích thước cho code */
+  font-size: 0.85em;
 }
-/*  */

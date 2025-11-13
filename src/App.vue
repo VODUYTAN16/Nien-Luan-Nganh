@@ -1,5 +1,6 @@
 <template>
   <div class="app-root">
+    <!-- HEADER -->
     <header class="app-header">
       <!-- Logo -->
       <div class="logo" @click="goHome">
@@ -12,18 +13,18 @@
 
       <!-- Nav -->
       <nav class="nav-links">
-        <RouterLink to="/" exact-active-class="active-link"
-          >Trang chủ</RouterLink
-        >
-        <RouterLink to="/search" active-class="active-link"
-          >Tìm theo ảnh / text</RouterLink
-        >
-        <RouterLink to="/patterns" active-class="active-link"
-          >Kho mẫu</RouterLink
-        >
-        <RouterLink to="/models" active-class="active-link"
-          >Model Lab</RouterLink
-        >
+        <RouterLink to="/" exact-active-class="active-link">
+          Trang chủ
+        </RouterLink>
+        <RouterLink to="/search" active-class="active-link">
+          Tìm theo ảnh / text
+        </RouterLink>
+        <RouterLink to="/patterns" active-class="active-link">
+          Kho mẫu
+        </RouterLink>
+        <RouterLink to="/models" active-class="active-link">
+          Không gian embedding
+        </RouterLink>
       </nav>
 
       <!-- Auth / Actions -->
@@ -37,16 +38,26 @@
         </template>
 
         <template v-else>
-          <RouterLink to="/auth" class="btn-outline">Đăng nhập</RouterLink>
+          <!-- <RouterLink to="/auth" class="btn-outline">Đăng nhập</RouterLink> -->
           <RouterLink to="/search" class="btn-primary">Bắt đầu</RouterLink>
         </template>
       </div>
     </header>
 
+    <!-- MAIN -->
     <main class="app-main">
-      <RouterView />
+      <RouterView v-slot="{ Component, route }">
+        <!-- Cache các view có meta.keepAlive (ví dụ SearchView) -->
+        <KeepAlive>
+          <component v-if="route.meta.keepAlive" :is="Component" />
+        </KeepAlive>
+
+        <!-- Các view khác render bình thường -->
+        <component v-if="!route.meta.keepAlive" :is="Component" />
+      </RouterView>
     </main>
 
+    <!-- FOOTER -->
     <footer class="app-footer">
       <span>CrochetLens • Gợi ý mẫu coaster từ ảnh & mô tả</span>
     </footer>
@@ -55,7 +66,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, RouterView, RouterLink } from 'vue-router';
 
 const router = useRouter();
 
@@ -87,19 +98,18 @@ function logout() {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #faf7f5;
-  color: #222;
+  background: var(--bg-color);
+  color: var(--text-color);
   font-family:
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'SF Pro',
     sans-serif;
-  font-size: 16px; /* tăng base cho toàn layout */
+  font-size: 16px;
 }
 
 /* HEADER */
-
 .app-header {
   position: sticky;
   top: 0;
@@ -109,8 +119,8 @@ function logout() {
   justify-content: space-between;
   padding: 16px 44px;
   backdrop-filter: blur(18px);
-  background: rgba(250, 247, 245, 0.94);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  background: var(--bg-color);
+  border-bottom: var(--border-light);
 }
 
 .logo {
@@ -124,9 +134,9 @@ function logout() {
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: var(--border-light);
   object-fit: contain;
-  background: linear-gradient(135deg, #ffe4ec, #f7f0ff);
+  background: var(--green-gradient);
 }
 
 .logo-text {
@@ -136,33 +146,34 @@ function logout() {
 
 .logo-title {
   font-weight: 600;
-  font-size: 19px; /* 17 -> 19 */
+  font-size: 19px;
   letter-spacing: 0.02em;
+  color: var(--text-color);
 }
 
 .logo-sub {
-  font-size: 12px; /* 11 -> 12 */
+  font-size: 12px;
   opacity: 0.7;
+  color: var(--text-sub);
 }
 
 /* NAV LINKS */
-
 .nav-links {
   display: flex;
   gap: 20px;
-  font-size: 15px; /* 14 -> 15 */
+  font-size: 15px;
 }
 
 .nav-links a {
   text-decoration: none;
-  color: #444;
+  color: var(--text-color);
   padding: 7px 0;
   position: relative;
   transition: color 0.18s ease;
 }
 
 .nav-links a:hover {
-  color: #111;
+  color: var(--text-sub);
 }
 
 .nav-links a.router-link-active::after,
@@ -171,14 +182,13 @@ function logout() {
   position: absolute;
   left: 0;
   bottom: -4px;
-  width: 20px;
+  width: 22px;
   height: 2px;
   border-radius: 999px;
-  background: #e8a1b6;
+  background: var(--main-color);
 }
 
 /* ACTIONS */
-
 .nav-actions {
   display: flex;
   gap: 10px;
@@ -189,48 +199,50 @@ function logout() {
 .btn-primary {
   padding: 7px 16px;
   border-radius: 999px;
-  font-size: 13px; /* 12 -> 13 */
+  font-size: 13px;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: var(--border-light);
   cursor: pointer;
   background: transparent;
+  transition: all 0.18s ease;
 }
 
 .btn-outline {
-  color: #555;
+  color: var(--text-sub);
 }
 
 .btn-outline:hover {
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(95, 191, 143, 0.06);
+  border-color: var(--green-border);
 }
 
 .btn-primary {
-  background: #e8a1b6;
-  color: #fff;
+  background: var(--main-color);
+  color: var(--white);
   border: none;
-  box-shadow: 0 6px 14px rgba(232, 161, 182, 0.32);
+  box-shadow: var(--shadow-soft);
 }
 
 .btn-primary:hover {
+  background: var(--green-dark);
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(232, 161, 182, 0.36);
+  box-shadow: var(--shadow-strong);
 }
 
 /* USER PILL */
-
 .user-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 5px 11px;
   border-radius: 999px;
-  background: #fff7fb;
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  font-size: 12px; /* 11 -> 12 */
-  color: #444;
+  background: var(--sub-bg);
+  border: var(--border-light);
+  font-size: 12px;
+  color: var(--text-color);
 }
 
 .user-dot {
@@ -248,16 +260,15 @@ function logout() {
 }
 
 /* MAIN + FOOTER */
-
 .app-main {
   flex: 1;
   padding: 26px 44px 34px;
-  font-size: 1rem; /* bám theo base 16px */
+  font-size: 1rem;
 }
 
 .app-footer {
   padding: 16px 44px 22px;
-  font-size: 12px; /* 11 -> 12 */
-  color: rgba(0, 0, 0, 0.42);
+  font-size: 12px;
+  color: rgba(27, 46, 36, 0.45);
 }
 </style>

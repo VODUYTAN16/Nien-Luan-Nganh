@@ -5,14 +5,20 @@ import ModelLab from '@/views/ModelLab.vue';
 import AuthView from '@/views/AuthView.vue';
 import PatternCatalog from '@/views/PatternCatalog.vue';
 import SearchView from '@/views/SearchView.vue';
+import EmbeddingPlayground from '@/views/EmbeddingPlayground.vue';
 
 const routes = [
   { path: '/', name: 'home', component: HomeView },
   { path: '/patterns', name: 'patterns', component: PatternCatalog },
   { path: '/patterns/:id', name: 'pattern-detail', component: PatternDetail },
-  { path: '/models', name: 'models', component: ModelLab },
+  { path: '/models', name: 'models', component: EmbeddingPlayground },
   { path: '/auth', name: 'auth', component: AuthView },
-  { path: '/search', name: 'search', component: SearchView },
+  {
+    path: '/search',
+    name: 'search',
+    component: SearchView,
+    meta: { keepAlive: true },
+  },
 ];
 
 const router = createRouter({

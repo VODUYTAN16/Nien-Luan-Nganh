@@ -59,6 +59,7 @@ const goDetail = (id) => {
 onMounted(async () => {
   try {
     const data = await fetchPatterns();
+    console.log(data);
     patterns.value = data || [];
   } catch (e) {
     console.error('Lỗi khi tải patterns:', e);
@@ -73,19 +74,21 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  font-size: 16px; /* tăng base chữ toàn khu catalog */
+  font-size: 16px;
+  color: var(--text-color);
 }
 
 .catalog-header h2 {
-  font-size: 23px; /* 20 -> 23 */
+  font-size: 23px;
   font-weight: 600;
   margin: 0;
+  color: var(--text-color);
 }
 
 .subtitle {
   margin: 2px 0 0;
-  font-size: 14px; /* 12 -> 14 */
-  color: rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  color: var(--second-text-color);
 }
 
 .grid {
@@ -96,14 +99,14 @@ onMounted(async () => {
 
 .empty {
   margin-top: 14px;
-  font-size: 14px; /* 12 -> 14 */
-  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+  color: var(--second-text-color);
   text-align: center;
 }
 
 .loading {
-  font-size: 15px; /* 13 -> 15 */
-  color: #777;
+  font-size: 15px;
+  color: var(--second-text-color);
   text-align: center;
 }
 
@@ -117,14 +120,17 @@ onMounted(async () => {
   padding: 10px 18px;
   border-radius: 12px;
   border: none;
-  background: #b45b7c;
-  color: #fff;
-  font-size: 15px; /* 13 -> 15 */
+  background: var(--main-color);
+  color: var(--white);
+  font-size: 15px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: var(--box-shadow);
 }
 
 .load-more button:hover {
-  background: #9b4e6c;
+  background: var(--green-dark, var(--main-color));
+  box-shadow: var(--shadow-strong, var(--box-shadow));
+  transform: translateY(-1px);
 }
 </style>

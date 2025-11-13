@@ -97,33 +97,41 @@ async function submit() {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--bg-color);
 }
+
 .card {
   width: 100%;
   max-width: 360px;
   padding: 20px 20px 16px;
   border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.02);
+  background: var(--white);
+  box-shadow: var(--shadow-strong, 0 18px 48px rgba(0, 0, 0, 0.08));
+  border: var(--border-light, 1px solid rgba(0, 0, 0, 0.02));
 }
+
 h1 {
   font-size: 18px;
   font-weight: 500;
+  color: var(--text-color);
 }
+
 .subtitle {
   margin-top: 4px;
   font-size: 11px;
-  color: #666;
+  color: var(--second-text-color);
 }
+
+/* Tabs */
 .tabs {
   display: inline-flex;
   margin-top: 12px;
   padding: 3px;
   border-radius: 999px;
-  background: #f7f4f2;
+  background: var(--sub-bg);
   gap: 3px;
 }
+
 .tab {
   padding: 5px 14px;
   border-radius: 999px;
@@ -131,49 +139,76 @@ h1 {
   font-size: 10px;
   cursor: pointer;
   background: transparent;
-  color: #777;
+  color: var(--second-text-color);
+  transition: all 0.16s ease;
 }
+
 .tab.active {
-  background: #fff;
-  color: #c66b8e;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  background: var(--white);
+  color: var(--main-color);
+  box-shadow: var(--box-shadow, 0 4px 10px rgba(0, 0, 0, 0.06));
 }
+
+/* Form */
 form {
   margin-top: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
 label span {
   display: block;
   font-size: 9px;
-  color: #888;
+  color: var(--second-text-color);
   margin-bottom: 2px;
 }
+
 input {
   width: 100%;
   padding: 7px 10px;
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: var(--border-light, 1px solid rgba(0, 0, 0, 0.08));
   font-size: 11px;
-  background: #fff;
+  background: var(--white);
+  color: var(--text-color);
+  outline: none;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
 }
+
+input:focus {
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 2px rgba(95, 191, 143, 0.12);
+}
+
+/* Button */
 .btn-primary {
   margin-top: 6px;
   width: 100%;
   padding: 8px 0;
   border-radius: 999px;
   border: none;
-  background: #e8a1b6;
-  color: #fff;
+  background: var(--main-color);
+  color: var(--white);
   font-size: 11px;
   cursor: pointer;
-  box-shadow: 0 10px 26px rgba(232, 161, 182, 0.34);
+  box-shadow: var(--box-shadow, 0 10px 26px rgba(0, 0, 0, 0.16));
+  transition: all 0.18s ease;
 }
+
+.btn-primary:hover {
+  background: var(--green-dark, var(--main-color));
+  box-shadow: var(--shadow-strong, var(--box-shadow));
+  transform: translateY(-1px);
+}
+
+/* Hint */
 .hint {
   margin-top: 8px;
   font-size: 9px;
-  color: #aaa;
+  color: var(--second-text-color);
   text-align: center;
 }
 </style>
