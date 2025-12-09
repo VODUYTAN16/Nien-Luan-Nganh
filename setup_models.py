@@ -10,16 +10,16 @@ def main():
     seed = [
         dict(code="model_1", name="CLIP Image-only",
              description="Chỉ hỗ trợ tìm theo ảnh",
-             top_k=20, embedding_dim=512, is_default=False),
+             top_k=20,  is_default=False),
         dict(code="model_2", name="CLIP TwoTower",
              description="Ảnh + Text (two-tower CLIP)", top_k=20,
-             embedding_dim=512, is_default=False),
+              is_default=False),
         dict(code="model_3", name="CLIP ThreeTower",
              description="Three-tower demo", top_k=20,
-             embedding_dim=512, is_default=False),
+              is_default=False),
         dict(code="model_4", name="MAE Retrieval v1",
              description="Encoder MAE đã finetune cho coaster", top_k=20,
-             embedding_dim=512, is_default=True),
+             is_default=True),
     ]
 
     with SessionLocal() as session:

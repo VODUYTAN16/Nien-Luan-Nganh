@@ -55,7 +55,6 @@ class MLModelBase(BaseModel):
     description: Optional[str]
     is_default: bool
     top_k: int
-    embedding_dim: int
 
     class Config:
         from_attributes = True

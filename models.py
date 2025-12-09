@@ -31,7 +31,6 @@ class MLModel(Base):
     description = Column(Text)
     is_default = Column(Boolean, default=False)
     top_k = Column(Integer, default=20)
-    embedding_dim = Column(Integer, default=512)
     created_at = Column(TIMESTAMP, server_default=func.current_timestamp())
 
 

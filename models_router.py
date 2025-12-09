@@ -41,7 +41,7 @@ def get_embed_viz(model_code: str = Query(...)):
     base_dir = Path(__file__).resolve().parent / "ml" / "models"
     model_dir = base_dir / model_code
     candidates = [
-        (model_dir / "bottom_embs.npy", model_dir / "bottom_files.txt"),
+        (model_dir / "gallery_embs.npy", model_dir / "gallery_files.txt"),
         (model_dir / "bottom_embs_v5.npy", model_dir / "bottom_files_v5.txt"),
     ]
     emb_path = files_path = None

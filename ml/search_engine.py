@@ -18,6 +18,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 def load_index(model_dir: Path):
     # ưu tiên cặp chuẩn, fallback sang v5
     candidates = [
+        ("gallery_embs.npy", "gallery_files.txt"),
         ("bottom_embs.npy", "bottom_files.txt"),
         ("bottom_embs_v5.npy", "bottom_files_v5.txt"),
     ]
@@ -57,7 +58,7 @@ class BaseRetrievalModel:
 
 # ---------- Model 1 (image-only CLIP) ----------
 class CLIPImageModel(nn.Module):
-    def __init__(self, model_name="openai/clip-vit-base-patch32"):
+    def __init__(self, model_name="openai/clip-vit-base-patch16"):
         super().__init__()
         self.clip = CLIPModel.from_pretrained(model_name)
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1/0.07))
@@ -80,8 +81,7 @@ class Model1Retrieval(BaseRetrievalModel):
 
     def _load_ckpt(self):
         cands = [
-            self.model_dir / "clip_img_best_r1.pt",
-            self.model_dir / "clip_img_best_val.pt",
+            self.model_dir / "best_R1.pt",
         ] + list(reversed(sorted(self.model_dir.glob("clip_img_epoch*.pt"))))
         ckpt = next((p for p in cands if p.exists()), None)
         if not ckpt:
@@ -103,10 +103,10 @@ class Model1Retrieval(BaseRetrievalModel):
 
 # ---------- Model 2 (TwoTower proxy) ----------
 class TwoTowerModel(BaseRetrievalModel):
-    def __init__(self, model_dir: Path, ckpt_name="twotower_best_r1.pt"):
+    def __init__(self, model_dir: Path, ckpt_name="best_R1.pt"):
         super().__init__(model_dir)
-        self.clip = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(DEVICE)
-        self.proc = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+        self.clip = CLIPModel.from_pretrained("openai/clip-vit-base-patch16").to(DEVICE)
+        self.proc = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
         self.clip.eval()
         self.img_t = transforms.Compose([
             transforms.Resize((224,224), interpolation=InterpolationMode.BICUBIC),
@@ -152,7 +152,7 @@ class TwoTowerModel(BaseRetrievalModel):
 
 # ---------- Model 3 (ThreeTower proxy) ----------
 class ThreeTowerModel(TwoTowerModel):
-    def __init__(self, model_dir: Path, ckpt_name="threetower_best_r1_fuse.pt"):
+    def __init__(self, model_dir: Path, ckpt_name="best_R1.pt"):
         super().__init__(model_dir, ckpt_name)
         self.alpha = 0.6  # ảnh-text fuse
 
@@ -225,7 +225,7 @@ class CrochetEncoder(nn.Module):
         return self.head(f_shape, f_pattern)
 
 class MAEModel(BaseRetrievalModel):
-    def __init__(self, model_dir: Path, ckpt_name="ft_best.pth"):
+    def __init__(self, model_dir: Path, ckpt_name="best_R1.pth"):
         super().__init__(model_dir)
         self.device = DEVICE
         self.img_t = T.Compose([

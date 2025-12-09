@@ -85,26 +85,33 @@ async def search_by_image(
     return items
 
 
-@router.post("/text", response_model=SearchResponse)
+@router.post("/text")
 async def search_by_text(
     payload: TextSearchIn,
     db: Session = Depends(get_db),
     authorization: Optional[str] = Header(None),
 ):
     user_id = get_user_id_from_auth(authorization)
+
     model = ensure_model(db, payload.model_code)
     text = (payload.text or "").strip()
+
     if not text:
         raise HTTPException(status_code=400, detail="Thiếu text")
+
     try:
         base_names = search_engine.search_by_text(model.code, text, model.top_k)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    items = order_and_serialize(db, base_names)
-    log_search(db, user_id, payload.model_code, text, None, [x.id for x in items])
-    return SearchResponse(items=items)
 
-@router.post("/fuse", response_model=SearchResponse)
+    items = order_and_serialize(db, base_names)
+
+    log_search(db, user_id, payload.model_code, text, None, [x.id for x in items])
+
+    return items      # ← MẢNG BÌNH THƯỜNG
+
+
+@router.post("/fuse")
 async def search_by_image_and_text(
     model_code: str = Form(...),
     text: str = Form(...),
@@ -114,20 +121,35 @@ async def search_by_image_and_text(
 ):
     user_id = get_user_id_from_auth(authorization)
     model = ensure_model(db, model_code)
+
     t = (text or "").strip()
     if not t:
         raise HTTPException(status_code=400, detail="Thiếu text")
+
     img_bytes = await image.read()
+
     try:
-        base_names = search_engine.search_by_image_and_text(model.code, img_bytes, t, model.top_k)
+        base_names = search_engine.search_by_image_and_text(
+            model.code, img_bytes, t, model.top_k
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    items = order_and_serialize(db, base_names)
-    log_search(db, user_id, model_code, t, image.filename if image else None, [x.id for x in items])
-    return SearchResponse(items=items)
 
-# compatible legacy
-@router.post("/", response_model=SearchResponse)
+    items = order_and_serialize(db, base_names)
+
+    log_search(
+        db,
+        user_id,
+        model_code,
+        t,
+        image.filename if image else None,
+        [x.id for x in items],
+    )
+
+    return items      # ← MẢNG BÌNH THƯỜNG
+
+
+@router.post("/")
 async def search_patterns_compatible(
     model_code: str = Form(...),
     query_text: Optional[str] = Form(None),
@@ -136,23 +158,42 @@ async def search_patterns_compatible(
     authorization: Optional[str] = Header(None),
 ):
     user_id = get_user_id_from_auth(authorization)
+
     model = ensure_model(db, model_code)
+
     has_text = bool(query_text and query_text.strip())
     has_image = image is not None
+
     if not has_text and not has_image:
         raise HTTPException(status_code=400, detail="Thiếu query_text hoặc image")
+
     try:
         if has_text and has_image:
             img_bytes = await image.read()
-            base_names = search_engine.search_by_image_and_text(model.code, img_bytes, query_text.strip(), model.top_k)
+            base_names = search_engine.search_by_image_and_text(
+                model.code, img_bytes, query_text.strip(), model.top_k
+            )
         elif has_image:
             img_bytes = await image.read()
-            base_names = search_engine.search_by_image_bytes(model.code, img_bytes, model.top_k)
+            base_names = search_engine.search_by_image_bytes(
+                model.code, img_bytes, model.top_k
+            )
         else:
-            base_names = search_engine.search_by_text(model.code, query_text.strip(), model.top_k)
+            base_names = search_engine.search_by_text(
+                model.code, query_text.strip(), model.top_k
+            )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
     items = order_and_serialize(db, base_names)
-    log_search(db, user_id, model_code, query_text.strip() if has_text else None,
-               image.filename if has_image else None, [x.id for x in items])
-    return SearchResponse(items=items)
+
+    log_search(
+        db,
+        user_id,
+        model_code,
+        query_text.strip() if has_text else None,
+        image.filename if has_image else None,
+        [x.id for x in items],
+    )
+
+    return items      # ← MẢNG BÌNH THƯỜNG
