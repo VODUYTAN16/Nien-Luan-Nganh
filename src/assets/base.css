@@ -1,40 +1,46 @@
 :root {
-  /* ======= TONE XANH LÁ DỊU NHẸ ======= */
+  /* ======= TONE XANH LÁ (CHỦ ĐẠO) ======= */
 
-  --green-main: #5fbf8f; /* màu chính: xanh lá mềm */
-  --green-dark: #3c9b6d; /* xanh đậm hơn cho hover */
-  --green-light: #d9f6e8; /* nền nhạt */
-  --green-bg: #f5faf7; /* màu nền tổng thể */
-  --green-border: rgba(95, 191, 143, 0.25);
-  --green-gradient: linear-gradient(135deg, #d9f6e8, #e8fff2);
+  --green-main: #3a6f43; /* Apple → màu chính (xanh sáng, dễ nhìn) */
+  --green-dark: #2d4729; /* Moss → xanh đậm cho hover / chi tiết */
+  --green-light: #f5f5f7; /* Cherry Blossom → hồng làm accent */
+  --green-bg: #ecdfcc; /* Black Iris → nền tối tạo chiều sâu */
+  --green-border: rgba(142, 175, 85, 0.25); /* Apple opacity */
+  /* --green-gradient: linear-gradient(135deg, #8eaf55, #deaec1); */
 
   /* ======= TONE PHỤ & CƠ BẢN ======= */
 
-  --white: #ffffff;
-  --text-color: #2f3a33; /* màu chữ chính */
-  --text-sub: #4d6b5b; /* chữ phụ */
-  --shadow-soft: 0 6px 14px rgba(95, 191, 143, 0.18);
-  --shadow-strong: 0 10px 24px rgba(60, 155, 109, 0.35);
-  --border-light: 1px solid rgba(0, 0, 0, 0.06);
+  --white: #f9f8f6; /* Gunmetal → card / surface */
+  --text-color: #01204e; /* chữ chính */
+  --text-sub: #01204e; /* chữ phụ */
 
-  /* ======= GIỮ LẠI MỘT SỐ BIẾN CŨ (để không lỗi code cũ) ======= */
+  /* shadow giữ tối để có chiều sâu */
+  --shadow-soft: 0 6px 14px rgba(0, 0, 0, 0.25);
+  --shadow-strong: 0 10px 24px rgba(0, 0, 0, 0.45);
 
-  --organge: #5fbf8f;
-  --sub-bg: #f0fff8;
+  --border-light: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* ======= GIỮ BIẾN CŨ ======= */
+
+  --organge: #e67e22; /* dùng hồng làm accent thay vì xanh */
+  --sub-bg: #f87a53; /* Gunmetal */
   --bg-color: var(--green-bg);
   --main-color: var(--green-main);
   --second-text-color: var(--text-sub);
   --cover-color: var(--green-gradient);
-  --pages-color: linear-gradient(90deg, #fdfdfb, #f5faf7);
+  --pages-color: linear-gradient(90deg, #21252f, #4e5053);
   --border: 0.125rem solid var(--green-main);
   --box-shadow: var(--shadow-soft);
 }
-
 /* ======= Global reset ======= */
 
 a {
   text-decoration: none;
   color: var(--main-color);
+}
+h5,
+h6 {
+  color: var(--text-color) !important;
 }
 
 /* ======= Chat Bot Button ======= */

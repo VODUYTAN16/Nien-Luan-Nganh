@@ -1,7 +1,6 @@
 <template>
   <div class="hero-wrapper">
     <!-- Lớp mờ phủ lên ảnh nền -->
-    <div class="hero-blur-overlay"></div>
 
     <!-- Lớp hiệu ứng lá -->
     <LeafFall class="leaf-layer" />
@@ -9,34 +8,30 @@
     <!-- Nội dung hero -->
     <section class="hero">
       <div class="hero-left">
-        <h1>Biến ý tưởng len thành mẫu móc cụ thể.</h1>
-        <p>
-          Tải lên một bức ảnh, hay gõ vài dòng mô tả. Hệ thống sẽ gợi ý mẫu móc
-          len, chart, màu sắc và độ khó phù hợp, dựa trên CSDL mẫu của bạn.
-        </p>
+        <h1>Tạo sinh công thức móc len từ hình ảnh.</h1>
+        <p>Tải lên một bức ảnh. Hệ thống sẽ gợi ý mẫu móc len.</p>
         <div class="hero-actions">
           <RouterLink to="/search" class="btn-primary-large">
-            Bắt đầu từ ảnh / text
+            Bắt đầu tạo sinh
           </RouterLink>
           <RouterLink to="/patterns" class="ghost-link">
             Xem kho mẫu hiện có →
           </RouterLink>
         </div>
         <div class="hero-meta">
-          <span>✓ Tìm kiếm theo ảnh</span>
-          <span>✓ Tối ưu cho coaster, túi, plushies</span>
-          <span>✓ Tinh chỉnh model trực tiếp</span>
+          <span>✓ Tạo sinh theo ảnh</span>
+          <span>✓ Tối ưu cho coaster, granny</span>
         </div>
       </div>
 
       <div class="hero-right">
         <div class="hero-card">
-          <div class="hero-label">Demo gợi ý</div>
+          <div class="hero-label">Hình ảnh mẫu móc minh họa</div>
 
           <!-- Ảnh đầu vào -->
           <div class="input-preview">
             <img :src="inputImg" alt="input demo" />
-            <p class="input-caption">"Hoa năm cánh"</p>
+            <p class="input-caption">"Những mẫu granny phổ biến"</p>
           </div>
 
           <!-- Kết quả tương tự -->
@@ -48,8 +43,6 @@
               :style="{ backgroundImage: `url(${getThumbUrl(img)})` }"
             ></div>
           </div>
-
-          <div class="hero-note">Top 6 kết quả tương tự từ CLIP-Image.</div>
         </div>
       </div>
     </section>
@@ -59,11 +52,11 @@
 <script setup>
 import LeafFall from '@/components/LeafFall.vue';
 
-const similarImgs = ['0385', '0383', '0379', '0325', '0309', '0076'];
-const inputImg = new URL('../assets/top/0384.jpg', import.meta.url).href;
+const similarImgs = ['2_R5', '57', '35', '39', '48', '56'];
+const inputImg = new URL('../assets/top/25.png', import.meta.url).href;
 
 const getThumbUrl = (name) =>
-  new URL(`../assets/top/${name}.jpg`, import.meta.url).href;
+  new URL(`../assets/top/${name}.png`, import.meta.url).href;
 </script>
 
 <style scoped>
@@ -72,17 +65,7 @@ const getThumbUrl = (name) =>
   position: relative;
   overflow: hidden;
   min-height: 75vh;
-  background: var(--bg-color);
-}
-
-.hero-wrapper::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url('../assets/hinhV.png') center/cover no-repeat;
-  filter: blur(8px) brightness(1.1);
-  z-index: 0;
-  transform: scale(1.05);
+  background: var(--green-light);
 }
 
 /* lớp mờ phủ lên nền */
@@ -90,7 +73,7 @@ const getThumbUrl = (name) =>
   position: absolute;
   inset: 0;
   backdrop-filter: blur(6px); /* mức độ mờ */
-  background-color: rgba(255, 255, 255, 0.08); /* kính mờ nhẹ */
+  background-color: rgba(100, 100, 100, 0.08); /* kính mờ nhẹ */
   z-index: 1;
 }
 
@@ -112,7 +95,7 @@ const getThumbUrl = (name) =>
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 0;
+  padding: 20px;
   color: var(--text-color);
 }
 
@@ -126,9 +109,9 @@ const getThumbUrl = (name) =>
 
 .hero-left p {
   margin-top: 12px;
-  font-size: 14px;
+  font-size: 18px;
   color: var(--second-text-color);
-  max-width: 460px;
+  max-width: 600px;
 }
 
 .hero-actions {
@@ -144,7 +127,7 @@ const getThumbUrl = (name) =>
   border-radius: 999px;
   background: var(--main-color);
   color: var(--white);
-  font-size: 13px;
+  font-size: 14px;
   text-decoration: none;
   box-shadow: var(--box-shadow);
   transition: all 0.18s ease;
@@ -157,7 +140,7 @@ const getThumbUrl = (name) =>
 }
 
 .ghost-link {
-  font-size: 12px;
+  font-size: 13px;
   text-decoration: none;
   color: var(--second-text-color);
   transition: color 0.18s ease;
@@ -172,7 +155,7 @@ const getThumbUrl = (name) =>
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  font-size: 11px;
+  font-size: 14px;
   color: var(--second-text-color);
 }
 

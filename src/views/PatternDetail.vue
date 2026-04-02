@@ -4,76 +4,59 @@
     <div class="breadcrumb">
       <RouterLink to="/patterns">Kho mẫu</RouterLink>
       <span>/</span>
-      <span>{{ pattern.name }}</span>
+      <span>{{ pattern.image_name || pattern.name }}</span>
     </div>
 
     <!-- Layout chính -->
     <section class="layout">
-      <!-- Cột trái: ảnh top -->
+      <!-- Cột trái: ảnh -->
       <div class="left">
         <div class="image-wrap">
-          <img :src="withBase(pattern.top_image_url)" :alt="pattern.name" />
+          <img :src="imageUrl" :alt="pattern.image_name" />
           <p class="caption">Ảnh sản phẩm móc len</p>
         </div>
       </div>
 
       <!-- Cột phải: thông tin chi tiết -->
       <div class="right">
-        <h1>Sản phẩm mã - {{ pattern.name }}</h1>
+        <h1>
+          Sản phẩm mã -
+          {{ pattern.image_name?.replace(/\.(jpg|jpeg|png)$/i, '') }}
+        </h1>
 
         <div class="meta">
-          <span v-if="pattern.type" class="pill">{{ pattern.type }}</span>
-          <span v-if="pattern.difficulty" class="pill ghost">
-            {{ pattern.difficulty }}
-          </span>
-          <span v-for="tag in tagList" :key="tag" class="tag">
-            #{{ tag }}
-          </span>
+          <span class="pill">coaster/granny</span>
         </div>
 
-        <p class="desc">
-          {{
-            pattern.description || 'Mẫu đang chờ được cập nhật mô tả chi tiết.'
-          }}
-        </p>
-
-        <!-- Ảnh bot nhỏ dưới mô tả + click để phóng to -->
-        <div v-if="pattern.bot_image_url" class="bot-image-box">
-          <img
-            :src="withBase(pattern.bot_image_url)"
-            alt="Bot image"
-            class="bot-image"
-            @click="showModal = true"
-          />
-          <p class="caption-bot">Ảnh công thức — click để xem lớn</p>
+        <!-- Công thức pattern (đã được chuyển thành chữ thường) -->
+        <div class="pattern-content">
+          <h3>📝 Công thức</h3>
+          <div class="pattern-text">{{ formattedPattern }}</div>
         </div>
 
-        <!-- Nguyên liệu (nếu có) -->
-        <div class="block" v-if="pattern.materials || pattern.hook">
-          <h3>Nguyên liệu gợi ý</h3>
-          <ul>
-            <li v-if="pattern.yarn">Len: {{ pattern.yarn }}</li>
-            <li v-if="pattern.hook">Kim móc: {{ pattern.hook }}</li>
-            <li v-if="pattern.materials">{{ pattern.materials }}</li>
-          </ul>
+        <!-- Nút copy pattern -->
+        <div class="copy-btn-container" v-if="pattern.pattern">
+          <button @click="copyPattern" class="copy-btn">
+            📋 Sao chép công thức
+          </button>
         </div>
 
-        <!-- Link hướng dẫn gốc -->
-        <div class="block" v-if="pattern.link">
-          <h3>Hướng dẫn chi tiết</h3>
+        <!-- Nguồn (Link) -->
+        <div class="block" v-if="pattern.Link || pattern.link">
+          <h3>🔗 Nguồn tham khảo</h3>
           <a
             class="external"
-            :href="pattern.link"
+            :href="pattern.Link || pattern.link"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Mở pattern / chart gốc →
+            Mở link gốc →
           </a>
         </div>
       </div>
     </section>
 
-    <!-- Mẫu tương tự: dùng PatternCard, tối đa 10 mẫu, 2 hàng -->
+    <!-- Mẫu tương tự -->
     <section class="related" v-if="related.length">
       <div class="related-header">
         <h3>Mẫu tương tự</h3>
@@ -81,30 +64,12 @@
       <div class="grid">
         <PatternCard
           v-for="p in related"
-          :key="p.id"
+          :key="p.image_name"
           :pattern="p"
-          @click="openPattern(p.id)"
+          @click="openPattern(p.image_name)"
         />
       </div>
     </section>
-
-    <!-- Modal phóng to ảnh bot -->
-    <transition name="zoom-fade">
-      <div
-        v-if="showModal"
-        class="modal-overlay"
-        @click.self="showModal = false"
-      >
-        <div class="modal-content">
-          <button class="close-btn" @click="showModal = false">×</button>
-          <img
-            :src="withBase(pattern.bot_image_url)"
-            alt="Bot image enlarged"
-            class="modal-img"
-          />
-        </div>
-      </div>
-    </transition>
   </div>
 
   <div v-else class="page loading">Đang tải mẫu...</div>
@@ -113,57 +78,110 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { fetchPatternDetail, fetchPatterns } from '@/service/service';
+import {
+  getPatternByImageName,
+  getAllPatterns,
+  getPatternImageUrl,
+} from '@/service/service';
 import PatternCard from '@/components/PatternCard.vue';
-
-const API_BASE = 'http://localhost:8000';
-const withBase = (url) => {
-  if (!url) return '';
-  if (url.startsWith('http')) return url;
-  return API_BASE + url;
-};
 
 const route = useRoute();
 const router = useRouter();
 
 const pattern = ref(null);
 const related = ref([]);
-const showModal = ref(false);
 
-const tagList = computed(() => {
-  if (!pattern.value?.tags) return [];
-  if (Array.isArray(pattern.value.tags)) return pattern.value.tags;
-  return pattern.value.tags
-    .split(/[,\s]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+// Computed: Pattern đã được xử lý (chữ thường)
+const formattedPattern = computed(() => {
+  if (!pattern.value?.pattern) return 'Chưa có công thức';
+
+  let text = pattern.value.pattern;
+
+  // Chuyển toàn bộ về chữ thường
+  text = text.toLowerCase();
+
+  // Optional: Giữ nguyên chữ hoa cho từ đầu tiên của mỗi câu
+  // text = text.replace(/(^\s*|[.!?]\s+)([a-z])/g, (match, separator, letter) => {
+  //   return separator + letter.toUpperCase();
+  // });
+
+  return text;
 });
 
-const loadPattern = async (id) => {
-  if (!id) return;
+// Lấy URL ảnh
+const imageUrl = computed(() => {
+  if (!pattern.value?.image_name) return '';
+  return getPatternImageUrl(pattern.value.image_name);
+});
+
+// Copy pattern vào clipboard
+const copyPattern = async () => {
+  if (!pattern.value?.pattern) return;
+
   try {
-    const data = await fetchPatternDetail(id);
-    pattern.value = data;
-
-    const all = await fetchPatterns({ type: data.type });
-    related.value = all.filter((p) => p.id !== data.id).slice(0, 10);
-
-    showModal.value = false;
-  } catch (e) {
-    console.error(e);
+    await navigator.clipboard.writeText(formattedPattern.value);
+    alert('✅ Đã sao chép công thức vào clipboard!');
+  } catch (err) {
+    console.error('Lỗi khi copy:', err);
+    alert('❌ Không thể sao chép. Vui lòng thử lại.');
   }
 };
 
-const openPattern = async (id) => {
-  if (!id || id === pattern.value?.id) return;
-  await router.push(`/patterns/${id}`);
+// Tải chi tiết pattern
+const loadPattern = async (imageName) => {
+  if (!imageName) return;
+  try {
+    const data = await getPatternByImageName(imageName);
+    pattern.value = data;
+
+    // Tải mẫu tương tự
+    await loadRelatedPatterns(imageName);
+  } catch (e) {
+    console.error('Lỗi khi tải pattern:', e);
+    pattern.value = null;
+  }
+};
+
+// Tải mẫu tương tự
+const loadRelatedPatterns = async (currentImageName) => {
+  try {
+    const allPatterns = await getAllPatterns({ limit: 20, offset: 0 });
+    let otherPatterns = (allPatterns.patterns || []).filter(
+      (p) => p.image_name !== currentImageName
+    );
+
+    // Trộn ngẫu nhiên và lấy 10 mẫu
+    for (let i = otherPatterns.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [otherPatterns[i], otherPatterns[j]] = [
+        otherPatterns[j],
+        otherPatterns[i],
+      ];
+    }
+
+    related.value = otherPatterns.slice(0, 10);
+  } catch (e) {
+    console.error('Lỗi khi tải mẫu tương tự:', e);
+    related.value = [];
+  }
+};
+
+// Mở pattern khác
+const openPattern = async (imageName) => {
+  if (!imageName || imageName === pattern.value?.image_name) return;
+  await router.push(`/patterns/${encodeURIComponent(imageName)}`);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+// Lifecycle
 onMounted(() => {
-  loadPattern(route.params.id);
+  const imageName = route.params.id;
+  if (imageName) {
+    loadPattern(imageName);
+  }
 });
 
+// Watch cho route change
 watch(
   () => route.params.id,
   (newId, oldId) => {
@@ -173,8 +191,49 @@ watch(
   }
 );
 </script>
-
 <style scoped>
+.copy-btn-container {
+  margin: 12px 0;
+}
+
+.copy-btn {
+  padding: 8px 16px;
+  background: var(--main-color);
+  color: var(--white);
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+  background: var(--green-dark, var(--main-color));
+  transform: translateY(-1px);
+}
+
+.pattern-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--second-text-color);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: monospace;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 8px;
+  background: var(--bg-color);
+  border-radius: 8px;
+}
+
+.guide-img img {
+  margin-top: 10px;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+
 .page {
   max-width: 1100px;
   margin: 0 auto;
@@ -185,6 +244,8 @@ watch(
 .loading {
   font-size: 14px;
   color: var(--second-text-color);
+  text-align: center;
+  padding: 40px;
 }
 
 /* Breadcrumb */
@@ -195,7 +256,9 @@ watch(
   font-size: 12px;
   color: var(--second-text-color);
   margin-bottom: 12px;
+  margin-top: 20px;
 }
+
 .breadcrumb a {
   text-decoration: none;
   color: var(--main-color);
@@ -208,7 +271,7 @@ watch(
   gap: 28px;
 }
 
-/* Ảnh top */
+/* Ảnh */
 .image-wrap {
   width: 100%;
   position: relative;
@@ -216,12 +279,14 @@ watch(
   overflow: hidden;
   background: var(--sub-bg);
 }
+
 .image-wrap img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
+
 .caption {
   position: absolute;
   bottom: 8px;
@@ -240,6 +305,7 @@ watch(
   font-size: 26px;
   font-weight: 500;
   color: var(--text-color);
+  margin-bottom: 16px;
 }
 
 .meta {
@@ -247,6 +313,7 @@ watch(
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 8px;
+  margin-bottom: 20px;
 }
 
 .pill {
@@ -262,44 +329,33 @@ watch(
   color: var(--main-color);
 }
 
-.tag {
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  background: var(--sub-bg);
-  color: var(--second-text-color);
-}
-
-.desc {
-  margin-top: 12px;
-  font-size: 15px;
-  color: var(--second-text-color);
-  line-height: 1.5;
-}
-
-/* Ảnh bot nhỏ hơn + hover + caption riêng */
-.bot-image-box {
-  margin-top: 14px;
-  text-align: center;
-}
-
-.bot-image {
-  max-width: 75%;
+/* Pattern content */
+.pattern-content {
+  margin: 20px 0;
+  background: var(--bg-color);
   border-radius: 16px;
-  background: var(--white);
-  object-fit: contain;
-  cursor: zoom-in;
-  transition: all 0.2s ease;
+  padding: 16px;
 }
 
-.bot-image:hover {
-  transform: scale(1.03);
+.pattern-content h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text-color);
 }
 
-.caption-bot {
-  margin-top: 6px;
-  font-size: 12px;
+.pattern-text {
+  font-size: 13px;
+  line-height: 1.6;
   color: var(--second-text-color);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: monospace;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 8px;
+  background: var(--white);
+  border-radius: 8px;
 }
 
 /* Block nội dung phụ */
@@ -328,9 +384,14 @@ watch(
   text-decoration: none;
 }
 
-/* Mẫu tương tự: 2 hàng, tối đa 10 card */
+.external:hover {
+  text-decoration: underline;
+}
+
+/* Mẫu tương tự */
 .related {
   margin-top: 32px;
+  margin-bottom: 35px;
 }
 
 .related-header h3 {
@@ -345,77 +406,25 @@ watch(
   gap: 12px;
 }
 
-.grid :deep(.pattern-card),
-.grid :deep(.card) {
+.grid :deep(.pattern-card) {
   width: 100%;
 }
 
-/* Modal phóng to ảnh bot */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-  padding: 24px;
-}
-
-.modal-content {
-  position: relative;
-  max-width: 95vw;
-  max-height: 90vh;
-  background: var(--white);
-  border-radius: 12px;
-  overflow: hidden;
-  animation: zoomIn 0.25s ease;
-}
-
-.modal-img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 90vh;
-  margin: 0 auto;
-  object-fit: contain;
-}
-
-.close-btn {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  background: transparent;
-  border: none;
-  font-size: 28px;
-  color: var(--second-text-color);
-  cursor: pointer;
-}
-
-.close-btn:hover {
-  color: var(--main-color);
-}
-
-/* Hiệu ứng modal */
-@keyframes zoomIn {
-  from {
-    transform: scale(0.9);
-    opacity: 0;
+/* Responsive */
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
-  to {
-    transform: scale(1);
-    opacity: 1;
+
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.zoom-fade-enter-active,
-.zoom-fade-leave-active {
-  transition: opacity 0.25s;
-}
-
-.zoom-fade-enter-from,
-.zoom-fade-leave-to {
-  opacity: 0;
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

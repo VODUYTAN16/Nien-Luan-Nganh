@@ -3,17 +3,12 @@
     <img
       class="thumb"
       :src="imageSrc"
-      :alt="pattern.name || pattern.base_name"
+      :alt="pattern.image_name || pattern.name"
     />
     <div class="info">
-      <div class="name">
-        {{ truncatedDescription }}
-      </div>
+      <div class="name">Sản phẩm mã - {{ truncatedName }}</div>
       <div class="meta">
-        <span class="badge">{{ pattern.type || 'coaster' }}</span>
-        <span v-if="pattern.difficulty" class="badge soft">
-          {{ pattern.difficulty }}
-        </span>
+        <span class="badge">coaster/granny</span>
       </div>
     </div>
   </div>
@@ -21,7 +16,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { withBase } from '@/service/service';
+import { getPatternImageUrl } from '@/service/service';
 
 const props = defineProps({
   pattern: {
@@ -32,19 +27,23 @@ const props = defineProps({
 
 defineEmits(['click']);
 
-const imageSrc = computed(() =>
-  withBase(props.pattern.top_image_url || props.pattern.image)
-);
+const imageSrc = computed(() => {
+  // Ưu tiên dùng image_name để lấy ảnh từ API
+  if (props.pattern.image_name) {
+    return getPatternImageUrl(props.pattern.image_name);
+  }
+  // Fallback cho các field cũ
+  return props.pattern.top_image_url || props.pattern.image || '';
+});
 
-// caption rút gọn
-const truncatedDescription = computed(() => {
-  const text =
-    (props.pattern.description && props.pattern.description.trim()) ||
-    props.pattern.name ||
-    props.pattern.base_name ||
-    '';
+// Tên hiển thị (lấy từ image_name hoặc pattern)
+const truncatedName = computed(() => {
+  let text = props.pattern.image_name || props.pattern.name || 'Mẫu không tên';
 
-  const maxLen = 70; // chỉnh nếu cần ngắn hơn
+  // Bỏ đuôi .jpg, .png, .jpeg nếu có
+  text = text.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+
+  const maxLen = 70;
   return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
 });
 </script>
@@ -100,7 +99,7 @@ const truncatedDescription = computed(() => {
   padding: 3px 8px;
   border-radius: 999px;
   background: var(--sub-bg);
-  color: var(--main-color);
+  color: var(--white);
 }
 
 .badge.soft {

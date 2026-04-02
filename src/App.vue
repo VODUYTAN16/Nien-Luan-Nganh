@@ -6,8 +6,8 @@
       <div class="logo" @click="goHome">
         <img class="logo-icon" src="@/assets/logo.png" alt="logo" />
         <div class="logo-text">
-          <div class="logo-title">CrochetLens</div>
-          <div class="logo-sub">Gợi ý mẫu từ ảnh & mô tả</div>
+          <div class="logo-title">Granny&Coaster</div>
+          <div class="logo-sub">Gợi ý mẫu từ ảnh</div>
         </div>
       </div>
 
@@ -17,13 +17,10 @@
           Trang chủ
         </RouterLink>
         <RouterLink to="/search" active-class="active-link">
-          Tìm theo ảnh / text
+          Tạo sinh công thức
         </RouterLink>
         <RouterLink to="/patterns" active-class="active-link">
           Kho mẫu
-        </RouterLink>
-        <RouterLink to="/models" active-class="active-link">
-          Không gian embedding
         </RouterLink>
       </nav>
 
@@ -59,7 +56,7 @@
 
     <!-- FOOTER -->
     <footer class="app-footer">
-      <span>CrochetLens • Gợi ý mẫu coaster từ ảnh & mô tả</span>
+      <span>VODUYTAN • Gợi ý mẫu móc từ ảnh đầu vào</span>
     </footer>
   </div>
 </template>
@@ -98,8 +95,9 @@ function logout() {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg-color);
+  background: var(--green-light);
   color: var(--text-color);
+  overflow-y: hidden;
   font-family:
     system-ui,
     -apple-system,
@@ -131,12 +129,13 @@ function logout() {
 }
 
 .logo-icon {
-  width: 34px;
-  height: 34px;
+  width: 50px;
+  height: 50px;
   border-radius: 999px;
-  border: var(--border-light);
+  /* border: var(--border-light); */
   object-fit: contain;
-  background: var(--green-gradient);
+  /* background: var(--green-gradient); */
+  transform: scale(1.6);
 }
 
 .logo-text {
@@ -262,13 +261,14 @@ function logout() {
 /* MAIN + FOOTER */
 .app-main {
   flex: 1;
-  padding: 26px 44px 34px;
+  /* padding: 26px 44px 34px; */
   font-size: 1rem;
 }
 
 .app-footer {
   padding: 16px 44px 22px;
   font-size: 12px;
-  color: rgba(27, 46, 36, 0.45);
+  color: var(--text-color);
+  background-color: var(--bg-color);
 }
 </style>
